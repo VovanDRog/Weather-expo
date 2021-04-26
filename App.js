@@ -13,8 +13,9 @@ import axios from "axios";
 import Weather from "./components/Weather";
 import CurrentWeather from "./components/CurrentWeather";
 import { LinearGradient } from "expo-linear-gradient";
+import env from "./config";
 
-const apiKey = "b6a887fe49dc7573ef276205139ba88a";
+const apiKey = env.openweatherApiKey;
 
 export default function App() {
   const [forecast, setForecast] = useState(null);
@@ -26,7 +27,6 @@ export default function App() {
     axios
       .get(url)
       .then(({ data }) => {
-        console.log("🚀 data", data);
         setForecast(data);
       })
       .catch((error) => {
@@ -40,7 +40,6 @@ export default function App() {
     axios
       .get(url)
       .then(({ data }) => {
-        console.log("🚀 setCurrentWeather", data);
         setCurrentWeather(data);
       })
       .catch((error) => {
@@ -64,7 +63,7 @@ export default function App() {
         getForecast({ latitude, longitude });
         getCurrentWeather({ latitude, longitude });
       } catch (error) {
-        console.log("🚀error", error);
+        console.error("🚀error", error);
         Alert.alert("Permission to access location was denied");
       }
     })();
