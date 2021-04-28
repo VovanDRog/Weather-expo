@@ -1,19 +1,22 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-export default function Temperature({ min, max }) {
-  return (
+export default function Temperature({ temp }) {
+  if (typeof temp === "number") {
+    return <Text style={styles.tempValue}>{Math.round(temp)}°</Text>;
+  }
+  return typeof temp === "object" && "max" in temp ? (
     <View style={styles.container}>
       <View style={styles.tempItem}>
-        <Text style={styles.tempLabel}>мін</Text>
-        <Text style={styles.tempValue}>{Math.round(min)}°</Text>
+        <Text style={styles.tempLabel}>min</Text>
+        <Text style={styles.tempValue}>{Math.round(temp.min)}°</Text>
       </View>
       <View style={styles.tempItem}>
-        <Text style={styles.tempLabel}>макс</Text>
-        <Text style={styles.tempValue}>{Math.round(max)}°</Text>
+        <Text style={styles.tempLabel}>max</Text>
+        <Text style={styles.tempValue}>{Math.round(temp.max)}°</Text>
       </View>
     </View>
-  );
+  ) : null;
 }
 
 const styles = StyleSheet.create({

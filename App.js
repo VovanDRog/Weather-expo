@@ -1,51 +1,25 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   StyleSheet,
   StatusBar,
   View,
-  ScrollView,
+  TouchableOpacity,
   Text,
 } from "react-native";
 import Loading from "./components/Loading";
 import * as Location from "expo-location";
-import axios from "axios";
-import Weather from "./components/Weather";
 import CurrentWeather from "./components/CurrentWeather";
 import { LinearGradient } from "expo-linear-gradient";
-import env from "./config";
-
-const apiKey = env.openweatherApiKey;
+import { getCurrentWeather, getForecast } from "./api";
+import DailyForecast from "./components/DailyForecast";
+import HourlyForecast from "./components/HourlyForecast";
 
 export default function App() {
+  const [coordinates, setCoordinates] = useState(null);
+  const [activeTab, setActiveTab] = useState("daily");
   const [forecast, setForecast] = useState(null);
   const [currentWeather, setCurrentWeather] = useState(null);
-
-  function getForecast({ latitude, longitude }) {
-    let url = `https://api.openweathermap.org/data/2.5/onecall?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric&exclude=minutely`;
-
-    axios
-      .get(url)
-      .then(({ data }) => {
-        setForecast(data);
-      })
-      .catch((error) => {
-        Alert.alert(error.message);
-      });
-  }
-
-  function getCurrentWeather({ latitude, longitude }) {
-    let url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
-
-    axios
-      .get(url)
-      .then(({ data }) => {
-        setCurrentWeather(data);
-      })
-      .catch((error) => {
-        Alert.alert(error.message);
-      });
-  }
 
   useEffect(() => {
     (async () => {
@@ -60,8 +34,15 @@ export default function App() {
         let {
           coords: { latitude, longitude },
         } = await Location.getCurrentPositionAsync({ accuracy: 6 });
-        getForecast({ latitude, longitude });
-        getCurrentWeather({ latitude, longitude });
+
+        const coords = { latitude, longitude };
+        setCoordinates(coords);
+
+        const forecastData = await getForecast(coords);
+        setForecast(forecastData);
+
+        const weatherData = await getCurrentWeather(coords);
+        setCurrentWeather(weatherData);
       } catch (error) {
         console.error("🚀error", error);
         Alert.alert("Permission to access location was denied");
@@ -69,29 +50,43 @@ export default function App() {
     })();
   }, []);
 
+  function renderTabs() {
+    switch (activeTab) {
+      case "hourly":
+        return <HourlyForecast {...forecast} />;
+
+      default:
+        return <DailyForecast {...forecast} />;
+    }
+  }
+
   return (
     <LinearGradient colors={["#84fab0", "#8fd3f4"]} style={styles.container}>
       <StatusBar barStyle="light-content" />
 
       {currentWeather && <CurrentWeather {...currentWeather} />}
-      {forecast ? (
-        <Fragment>
-          <Text style={styles.forecast}>7 Days Forecast</Text>
-          <ScrollView horizontal>
-            <View style={styles.scrollView}>
-              {forecast.daily.map((item) => (
-                <Weather
-                  key={item.dt}
-                  {...item}
-                  condition={item.weather?.[0]}
-                />
-              ))}
-            </View>
-          </ScrollView>
-        </Fragment>
-      ) : (
-        <Loading />
-      )}
+      {forecast ? renderTabs() : <Loading />}
+
+      <View style={styles.buttonsContainer}>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            activeTab === "daily" ? styles.activeButton : {},
+          ]}
+          onPress={() => setActiveTab("daily")}
+        >
+          <Text style={styles.buttonText}>Daily</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            activeTab === "hourly" ? styles.activeButton : {},
+          ]}
+          onPress={() => setActiveTab("hourly")}
+        >
+          <Text style={styles.buttonText}>Hourly</Text>
+        </TouchableOpacity>
+      </View>
     </LinearGradient>
   );
 }
@@ -102,12 +97,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  scrollView: {
+  buttonsContainer: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 10,
   },
-  forecast: {
-    fontSize: 26,
-    color: "#fff",
+  button: {
+    alignItems: "center",
+    backgroundColor: "#DDDDDD",
+    padding: 10,
+    marginHorizontal: 5,
+    marginBottom: 15,
+    borderRadius: 4,
+  },
+  activeButton: {
+    backgroundColor: "#1bb0dc",
+  },
+  buttonText: {
+    fontSize: 24,
   },
 });

@@ -5,19 +5,8 @@ import { LinearGradient } from "expo-linear-gradient";
 import Temperature from "./Temperature";
 import getWeatherOptions from "../helpers/getWeatherOptions";
 
-function formatDate(timestamp) {
-  const d = new Date(timestamp * 1000);
-  let month = "" + (d.getMonth() + 1);
-  let day = "" + d.getDate();
-
-  if (month.length < 2) month = "0" + month;
-  if (day.length < 2) day = "0" + day;
-
-  return `${day}/${month}`;
-}
-
 export default function Weather(props) {
-  const { dt, temp, condition } = props;
+  const { date, temp, condition } = props;
 
   const currentOption = getWeatherOptions(condition.main);
 
@@ -28,8 +17,8 @@ export default function Weather(props) {
         size={96}
         color={currentOption.iconColor || "white"}
       />
-      <Text style={styles.date}>{formatDate(dt)}</Text>
-      <Temperature {...temp} />
+      <Text style={styles.date}>{date}</Text>
+      <Temperature temp={temp} />
       <Text style={styles.title}>{condition.main}</Text>
     </LinearGradient>
   );
