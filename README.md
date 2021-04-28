@@ -1,1 +1,1 @@
-# Weather-expo
+# React Native Weather app
